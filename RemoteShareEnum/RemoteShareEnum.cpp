@@ -17,11 +17,13 @@ int wmain(DWORD argc, WCHAR* lpszArgv[])
 
     PSHARE_INFO_502 BufPtr, p;
 
+    PSHARE_INFO_1 BufPtr2, p2;
+
     NET_API_STATUS res;
 
     LPTSTR   lpszServer = NULL;
 
-    DWORD er = 0, tr = 0, resume = 0, i;
+    DWORD er = 0, tr = 0, resume = 0, i,denied=0;
 
 
 
@@ -75,6 +77,9 @@ int wmain(DWORD argc, WCHAR* lpszArgv[])
                 NetApiBufferFree(BufPtr);
 
             }
+            else if (res == ERROR_ACCESS_DENIED) {
+                denied = 1;
+            }
 
             else
 
@@ -86,8 +91,51 @@ int wmain(DWORD argc, WCHAR* lpszArgv[])
 
         }
 
-
         while (res == ERROR_MORE_DATA);
+
+        if (denied == 1) {
+            do
+
+            {
+
+                res = NetShareEnum(lpszServer, 1, (LPBYTE*)&BufPtr2, -1, &er, &tr, &resume);
+
+
+                if (res == ERROR_SUCCESS || res == ERROR_MORE_DATA)
+
+                {
+
+                    p2 = BufPtr2;
+
+                    for (i = 1; i <= er; i++)
+
+                    {
+
+                        wprintf(L" % s\t % s\t % s\t\n", p2->shi1_netname, p2->shi1_remark,  lpszServer);
+
+
+                        p2++;
+
+                    }
+
+                    NetApiBufferFree(BufPtr2);
+
+                }
+
+                else
+
+                {
+
+                    wprintf(L"NetShareEnum() failed for server '%s'. Error code: % ld\n", lpszServer, res);
+
+                }
+
+            }
+
+            while (res == ERROR_MORE_DATA);
+            denied = 0;
+        }
+
         wprintf(L"-------------------------------------------------------------------------------------\n\n");
     }
 
