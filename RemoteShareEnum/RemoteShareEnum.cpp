@@ -6,6 +6,7 @@
 
 
 
+
 #pragma comment(lib, "Netapi32.lib")
 
 
@@ -28,85 +29,69 @@ int wmain(int argc, WCHAR* lpszArgv[])
 
     {
 
-    case 2:
+    case 1:
 
-        lpszServer = lpszArgv[1];
-
-        break;
-
-    default:
-
-        wprintf(L"Usage : % s <servername>\n", lpszArgv[0]);
+        wprintf(L"Usage : RemoteShareEnum.exe <servername1> <servername2> <servernameX>\n");
 
         return 1;
 
+    default:
+        break;
+        
+
     }
 
 
-    wprintf(L"Share               Local Path                           Uses    Descriptor\n");
+    wprintf(L"\n Share\tPath\tDescription\tCurrent Users\tServer\n\n");
 
-    wprintf(L"------------------------------------------------------------------------------\n");
+    wprintf(L"-------------------------------------------------------------------------------------\n\n");
 
-
-
-    do 
-
-    {
-
-        res = NetShareEnum(lpszServer, 502, (LPBYTE*)&BufPtr, -1, &er, &tr, &resume);
-
-
-        if (res == ERROR_SUCCESS || res == ERROR_MORE_DATA)
+    for (DWORD iter = 1; iter <= argc-1; iter++) {
+        lpszServer = lpszArgv[iter];
+        do
 
         {
 
-            p = BufPtr;
+            res = NetShareEnum(lpszServer, 502, (LPBYTE*)&BufPtr, -1, &er, &tr, &resume);
 
 
-
-            wprintf(L"NetShareEnum() is OK!\n");
-
-
-
-            for (i = 1; i <= er; i++)
+            if (res == ERROR_SUCCESS || res == ERROR_MORE_DATA)
 
             {
 
-                wprintf(L" % -20s % -45s % -8u", p->shi502_netname, p->shi502_path, p->shi502_current_uses);
+                p = BufPtr;
+
+                for (i = 1; i <= er; i++)
+
+                {
+
+                    wprintf(L" % s\t % s\t % s\t % u\t % s\t\n", p->shi502_netname, p->shi502_path, p->shi502_remark, p->shi502_current_uses, lpszServer);
 
 
+                    p++;
 
-                if (IsValidSecurityDescriptor(p->shi502_security_descriptor))
+                }
 
-                    wprintf(L"Yes\n");
-
-                else
-
-                    wprintf(L"No\n");
-
-                p++;
+                NetApiBufferFree(BufPtr);
 
             }
 
+            else
 
+            {
 
+                wprintf(L"NetShareEnum() failed for server '%s'. Error code: % ld\n",lpszServer, res);
 
-            NetApiBufferFree(BufPtr);
-
-        }
-
-        else
-
-        {
-
-            wprintf(L"NetShareEnum() failed!Error: % ld\n", res);
+            }
 
         }
 
+
+        while (res == ERROR_MORE_DATA);
+        wprintf(L"-------------------------------------------------------------------------------------\n\n");
     }
 
-
-    while (res == ERROR_MORE_DATA);
+    
 
     return 0;
 
