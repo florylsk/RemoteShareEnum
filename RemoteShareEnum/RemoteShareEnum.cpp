@@ -11,7 +11,7 @@
 
 
 
-int wmain(int argc, WCHAR* lpszArgv[])
+int wmain(DWORD argc, WCHAR* lpszArgv[])
 
 {
 
@@ -42,7 +42,7 @@ int wmain(int argc, WCHAR* lpszArgv[])
     }
 
 
-    wprintf(L"\n Share\tPath\tDescription\tCurrent Users\tServer\n\n");
+    wprintf(L"\n Share\tPath\tDescription\tCurrent Users\tHost\n\n");
 
     wprintf(L"-------------------------------------------------------------------------------------\n\n");
 
